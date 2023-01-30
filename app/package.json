@@ -1,0 +1,46 @@
+{
+  "name": "zara-products-checker",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "run": "vite --host --port 3000",
+    "preview": "vite preview --host --port 8080",
+    "build": "tsc && vite build",
+    "deploy-hosting": "yarn build && firebase deploy --only hosting",
+    "deploy-hosting-dev": "yarn build && firebase hosting:channel:deploy dev"
+  },
+  "dependencies": {
+    "@emotion/react": "11.10.5",
+    "@emotion/styled": "11.10.5",
+    "@mui/icons-material": "5.11.0",
+    "@mui/lab": "^5.0.0-alpha.115",
+    "@mui/material": "^5.11.4",
+    "firebase": "^9.15.0",
+    "lodash": "4.17.21",
+    "prop-types": "^15.8.1",
+    "react": "18.2.0",
+    "react-content-loader": "6.2.0",
+    "react-dom": "18.2.0",
+    "react-intersection-observer": "^9.4.1",
+    "react-redux": "8.0.5",
+    "react-router-dom": "6.8.0",
+    "redux": "4.2.1",
+    "swr": "2.0.3",
+    "typescript": "4.9.4"
+  },
+  "devDependencies": {
+    "@reduxjs/toolkit": "1.9.2",
+    "@types/lodash": "4.14.191",
+    "@types/react": "18.0.27",
+    "@types/react-dom": "18.0.10",
+    "@types/react-redux": "7.1.25",
+    "@vitejs/plugin-react": "3.0.1",
+    "aws-sdk": "2.1304.0",
+    "command-line-args": "5.2.1",
+    "redux-devtools-extension": "2.13.9",
+    "vite": "4.0.4",
+    "vite-plugin-compression": "0.5.1",
+    "vite-plugin-favicons-inject": "^2.1.0",
+    "vite-plugin-svgr": "2.4.0"
+  }
+}
