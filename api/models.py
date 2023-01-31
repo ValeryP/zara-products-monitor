@@ -12,4 +12,5 @@ class Size:
 class Product:
     name: str
     price: int
+    image: str
     sizes: [Size]

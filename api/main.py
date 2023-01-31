@@ -47,12 +47,13 @@ def read_item(url: str):
         el_product_price = driver.find_elements(By.CLASS_NAME, 'money-amount__main')[0]
         product_price = int(el_product_price.text.split(',')[0])
 
-        # select product sizes
-        xpath_product_sizes = 'size-selector__size-list'
-        el_product_sizes = driver.find_element(By.CLASS_NAME, xpath_product_sizes).find_elements(
-            By.TAG_NAME, 'li')
-        print(f"Product sizes: {len(el_product_sizes)}")
+        # select product image
+        product_image = driver.find_element(By.TAG_NAME, 'picture')\
+            .find_element(By.CLASS_NAME, 'media-image__image').get_attribute('src')
 
+        # select product sizes
+        el_product_sizes = driver.find_element(By.CLASS_NAME, 'size-selector__size-list') \
+            .find_elements(By.TAG_NAME, 'li')
         sizes = []
         for el_product_size in el_product_sizes:
             is_available = 'is-disabled' not in el_product_size.get_attribute('class')
@@ -70,6 +71,6 @@ def read_item(url: str):
 
             sizes.append(Size(product_size_label, is_available, product_label))
 
-        res = asdict(Product(product_name, product_price, sizes))
+        res = asdict(Product(product_name, product_price, product_image, sizes))
         print(f"=== {res}")
         return res
