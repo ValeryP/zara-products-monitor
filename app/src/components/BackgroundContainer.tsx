@@ -9,6 +9,7 @@ export const BackgroundContainer = (props: any) => {
         backgroundRepeat: 'no-repeat',
         minHeight: '100vh',
         background: grey[200] + "40",
+        paddingBottom: 100,
     }}>
         {props.children}
     </Box>

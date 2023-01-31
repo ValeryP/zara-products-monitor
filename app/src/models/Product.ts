@@ -4,8 +4,8 @@ export interface Product {
     image?: string;
     url?: string;
     sizes?: Size[];
-    monitorSizes?: SizeName[];
-    updatedAt?: Date;
+    lastChecked?: Date;
+    isLoading?: boolean;
 }
 
 export type SizeName = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
@@ -13,5 +13,5 @@ export type SizeName = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
 export interface Size {
     name?: SizeName;
     is_available?: boolean;
-    notes?: null;
+    notes?: string;
 }

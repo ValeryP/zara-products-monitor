@@ -7,16 +7,36 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../utils/store";
 import {RoundInputField} from "../components/RoundInputField";
 import logo from "../images/logo.svg";
+import {grey} from "@mui/material/colors";
+import {Product, Size} from "../models/Product";
+import {State, updateState} from "../utils/state";
+import {ProductComponent} from "../components/ProductComponent";
 
 export default function MainScreen() {
     const state = useSelector((state: RootState) => state.appState);
     const dispatch = useDispatch();
 
+    const [products, setProducts] = useState<Product[]>(state.products);
     const [isLoadingWebsiteDetails, setIsLoadingWebsiteDetails] = useState(false);
-    const [error, setError] = useState();
+    const [inputFieldError, setInputFieldError] = useState();
 
     const watchNewProduct = (url: string) => {
-        console.log("watchNewProduct", url);
+        console.log(`Adding ${url} to watchlist`);
+        const newProduct = {
+            name: "Product Name",
+            url: url,
+            price: 100,
+            image: "https://images.unsplash.com/photo-1626126090008-8b8b2b2e1b1a?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80",
+            sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => ({
+                name: size,
+                is_available: Math.random() > 0.5,
+                notes: Math.random() > 0.5 ? "Some notes" : undefined,
+            } as Size)),
+            monitorSizes: ['XS', 'S'],
+            lastChecked: new Date(),
+        } as Product;
+        setProducts([...products, newProduct]);
+        dispatch(updateState({products: [...state.products, newProduct]} as State));
     }
 
     return <BackgroundContainer>
@@ -32,12 +52,19 @@ export default function MainScreen() {
                     </Typography>
                 </Grid>
                 <Grid xs={12}>
-                    <Typography variant={"h6"} sx={{fontWeight: 400}}>
+                    <Typography variant={"h6"} sx={{fontWeight: 400, color: grey[800]}}>
                         🔎 Add products to your watchlist and get notified when they are in stock
                     </Typography>
                 </Grid>
                 <Grid xs={10}>
-                    <RoundInputField onValueSubmit={watchNewProduct} error={error}/>
+                    <RoundInputField onValueSubmit={watchNewProduct} error={inputFieldError}/>
+                </Grid>
+                <Grid xs={12} container spacing={2} mt={2}>
+                    {products.map((product, index) => (
+                        <Grid xs={3}>
+                            <ProductComponent key={index} product={product}/>
+                        </Grid>
+                    ))}
                 </Grid>
             </Grid>
         </Grid>

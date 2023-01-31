@@ -1,11 +1,12 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
+import {Product} from "../models/Product";
 
 export type State = {
-    url: string | null;
+    products: Product[];
 }
 
 export const INITIAL_STATE: State = {
-    url: null,
+    products: []
 };
 
 export const stateSlice = createSlice({
