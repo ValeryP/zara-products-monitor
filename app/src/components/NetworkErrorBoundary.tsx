@@ -22,8 +22,8 @@ export class NetworkErrorBoundary extends Component<Props, State> {
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error("Uncaught error:", error, errorInfo);
-        localStorage.removeItem(ZARA_PRODUCT_CHECKER_STATE)
-        window.location.reload();
+        // localStorage.removeItem(ZARA_PRODUCT_CHECKER_STATE)
+        // window.location.reload();
     }
 
     public render() {

@@ -1,6 +1,7 @@
 from dataclasses import asdict
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
@@ -19,10 +20,13 @@ options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/item/")
@@ -48,7 +52,7 @@ def read_item(url: str):
         product_price = int(el_product_price.text.split(',')[0])
 
         # select product image
-        product_image = driver.find_element(By.TAG_NAME, 'picture')\
+        product_image = driver.find_element(By.TAG_NAME, 'picture') \
             .find_element(By.CLASS_NAME, 'media-image__image').get_attribute('src')
 
         # select product sizes
