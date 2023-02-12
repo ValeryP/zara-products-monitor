@@ -37,6 +37,7 @@ export function RoundInputField({
                            if (ev.key === "Enter") {
                                ev.preventDefault();
                                onValueSubmit(value);
+                               setValue('');
                            }
                        }}
         />

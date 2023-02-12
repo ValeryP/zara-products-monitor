@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Unstable_Grid2"; // Grid version 2
@@ -10,10 +10,10 @@ import logo from "../images/logo.svg";
 import {grey} from "@mui/material/colors";
 import {Product} from "../models/Product";
 import {ProductComponent} from "../components/ProductComponent";
-import {getProduct} from "../network/monitorApi";
-import {eq, findIndex, includes, slice} from "lodash";
+import {eq, filter, findIndex, maxBy, minBy, slice, uniq, uniqBy} from "lodash";
 import {State, updateState} from "../utils/state";
-import moment from "moment";
+import {useProduct} from "../network/productsApi";
+import moment from "moment/moment";
 
 export default function MainScreen() {
     const state = useSelector((state: RootState) => state.appState);
@@ -21,86 +21,105 @@ export default function MainScreen() {
 
     const [products, setProducts] = useState<Product[]>(state.products);
     const [isLoadingWebsiteDetails, setIsLoadingWebsiteDetails] = useState(false);
-    const [inputFieldError, setInputFieldError] = useState();
+    const [inputFieldError, setInputFieldError] = useState<string>();
 
-    const productMemo = React.useMemo(() => products, [JSON.stringify(products)]);
+    const [productToLoad, setProductToLoad] = useState<Product>();
+    const {productData, productError, isProductLoading} = useProduct(productToLoad?.url);
 
-    // watch only new products scheduled for API calls
-    const productsToUpdate = products?.filter((product) => includes(["SCHEDULED", "REFRESHING"], product.status));
+    if (productData || productError || isProductLoading) {
+        console.log(`=== Render: ${productData?.name}, productError: ${productError}, isProductLoading: ${isProductLoading}`);
+    }
+    console.log(`=== Last checked: ${moment().diff(moment(maxBy(products, (p) => p?.lastChecked)?.lastChecked), "seconds")} sec ago`);
+
+    const [time, setTime] = useState(Date.now());
     useEffect(() => {
-        async function downloadProduct(product: Product) {
-            console.log(`API call for: ${product.url}`);
+        const interval = setInterval(() => setTime(Date.now()), 1000);
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
 
-            // wait 5 seconds before calling API
-            await new Promise(resolve => setTimeout(resolve, 5000));
-
-            setIsLoadingWebsiteDetails(true);
-            const newProduct = {
-                ...product,
-                status: product.status === "REFRESHING" ? "REFRESHING" : "LOADING"
-            } as Product;
-            updateProduct(products, product, newProduct);
-
-            let newProductFulfilled;
-            try {
-                newProductFulfilled = {
-                    ...await getProduct(product.url),
-                    url: product.url,
-                    status: "SUCCESS",
-                    lastChecked: new Date(),
-                    createdAt: product?.createdAt || new Date()
-                } as Product;
-            } catch (e) {
-                newProductFulfilled = {
-                    url: product.url,
-                    status: "ERROR",
-                } as Product;
-            }
-            updateProduct(products, product, newProductFulfilled);
-
-            setIsLoadingWebsiteDetails(false);
+    useEffect(() => {
+        const productsUnique = uniqBy(products, (p) => p.url);
+        dispatch(updateState({products: productsUnique} as State));
+        if (productsUnique.length !== products.length) {
+            window.location.reload();
         }
 
-        const apiCall = (product: any) => new Promise<void>(async resolve => {
-            await downloadProduct(product);
-            resolve();
+        const productsToRefresh = filter(products, (p) => {
+            const isNotSuccess = p?.status === "LOADING";
+            const isOutdated = moment().diff(moment(p?.lastChecked), "seconds") > 60;
+            return isNotSuccess || isOutdated;
         });
-        const reduceApiEndpoints = async (previous: Promise<void>, product: any) => {
-            await previous;
-            return apiCall(product);
-        };
-        const sequential = productsToUpdate.reduce(reduceApiEndpoints, Promise.resolve());
-        sequential.then(() => {
-            // TODO: submit all products to the state here
-        }, () => {
-            // TODO: submit all products to the state here (with errors)
-        });
-    }, [JSON.stringify(productsToUpdate?.map((product) => product.url).sort())]);
-
-    useEffect(() => {
-        dispatch(updateState({products: products} as State));
+        if (!productToLoad && !!productsToRefresh.length) {
+            setProductToLoad(productsToRefresh[0]);
+            console.log(`=== Refreshing products (${productsToRefresh?.length}): ${JSON.stringify(productsToRefresh[0])}`);
+        } else {
+            setIsLoadingWebsiteDetails(false);
+            console.log(`=== No products to refresh (${productsToRefresh?.length}), productToLoad: ${JSON.stringify(productToLoad)}`);
+        }
     }, [JSON.stringify(products)]);
 
     useEffect(() => {
-        const productsToRefresh = products.map((p) =>
-            (includes(["SUCCESS"], p.status) && moment().diff(moment(p.lastChecked), "minutes") > 1) || p.status === "ERROR" || !p.status
-                ? {...p, status: "REFRESHING"} as Product
-                : p);
-        console.log(`Refreshing products: ${productsToRefresh.filter((p) => p.status === "REFRESHING").length}`);
-        setProducts(productsToRefresh);
-    }, []);
+        if (isProductLoading) {
+            const newProduct = {
+                ...productToLoad,
+                status: "LOADING"
+            } as Product;
+            updateProduct(productToLoad!, newProduct);
+            setIsLoadingWebsiteDetails(true);
+        } else if (productError) {
+            const newProduct = {
+                ...productToLoad,
+                status: "ERROR"
+            } as Product;
+            updateProduct(productToLoad!, newProduct);
+            setProductToLoad(undefined);
+        } else if (productData) {
+            const newProduct = {
+                ...productData,
+                status: "SUCCESS",
+                lastChecked: new Date(),
+                createdAt: productData?.createdAt || new Date()
+            } as Product;
+            updateProduct(productToLoad!, newProduct);
+            setProductToLoad(undefined);
+        }
+    }, [JSON.stringify({productData, productError, isProductLoading})]);
 
-    const updateProduct = (allOldProducts: Product[], oldProduct: Product, newProduct: Product) => {
-        const productIndex = findIndex(allOldProducts, oldProduct)
-        setProducts([...slice(allOldProducts, 0, productIndex), newProduct, ...slice(allOldProducts, productIndex + 1)]);
-    }
+    useEffect(() => {
+        if (!!productData) {
+            const newProduct = {
+                ...productData,
+                status: "SUCCESS",
+                lastChecked: new Date(),
+                createdAt: productData?.createdAt || new Date()
+            } as Product;
+            updateProduct(productToLoad!, newProduct);
+            setProductToLoad(undefined);
+        }
+    }, [JSON.stringify(productData)]);
+
+    const updateProduct = (oldProduct: Product, newProduct: Product) => {
+        const productIndexOld = findIndex(products, (p) => p?.url === oldProduct?.url);
+        const productsNew = [...slice(products, 0, productIndexOld), newProduct, ...slice(products, productIndexOld + 1)];
+        console.log(`=== Updating product with index: ${productIndexOld}`);
+        setProducts(productsNew);
+    };
 
     const watchNewProduct = (url: string) => {
-        setProducts([...products, {url: url, status: "SCHEDULED"}]);
-    }
+        if (!url?.trim()?.length) {
+            setInputFieldError("Please enter a valid URL");
+        } else if (findIndex(products, (p) => p?.url === url) !== -1) {
+            setInputFieldError("This product is already in your watchlist");
+        } else {
+            setProducts([...products, {url: url, status: "LOADING"}]);
+            setInputFieldError(undefined);
+        }
+    };
 
     const onProductRemoved = (product: Product) => {
-        setProducts(products.filter(p => !eq(p, product)));
+        setProducts(products.filter(p1 => !eq(p1, product)))
     };
 
     return <BackgroundContainer>
@@ -123,11 +142,11 @@ export default function MainScreen() {
                 <Grid xs={10}>
                     <RoundInputField onValueSubmit={watchNewProduct} error={inputFieldError}/>
                 </Grid>
-                <Grid xs={12} container spacing={2} mt={2}>
-                    {productMemo.map((product, index) => (
-                        <Grid xs={3}>
+                <Grid xs={11} container spacing={2} mt={2}>
+                    {products.map((product, index) => (
+                        <Grid xs={6} sm={4}>
                             <ProductComponent key={index} product={product}
-                                              onRemoveClick={(p: Product) => setProducts(productMemo.filter(p1 => !eq(p1, p)))}/>
+                                              onRemoveClick={(p: Product) => onProductRemoved(p)}/>
                         </Grid>
                     ))}
                 </Grid>

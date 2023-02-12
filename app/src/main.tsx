@@ -20,3 +20,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 );
 
 document.body.style.margin = "0";
+
+export const isMobile = window.innerWidth < 600;

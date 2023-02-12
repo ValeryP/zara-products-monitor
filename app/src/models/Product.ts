@@ -9,11 +9,10 @@ export interface Product {
     status?: Status;
 }
 
-export type Status = 'LOADING' | 'SUCCESS' | 'ERROR' | 'SCHEDULED' | 'REFRESHING';
-export type SizeName = 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
+export type Status = 'LOADING' | 'SUCCESS' | 'ERROR';
 
 export interface Size {
-    name?: SizeName;
+    name?: string;
     is_available?: boolean;
     notes?: string;
 }
