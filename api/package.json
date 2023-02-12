@@ -1,9 +1,25 @@
 {
-  "name": "api",
+  "name": "zara-products-monitor",
   "version": "1.0.0",
   "scripts": {
-    "api-run": "uvicorn main:app --reload"
+    "api-run": "uvicorn main:app --reload",
+    "offline": "SLS_DEBUG=* sls offline --verbose",
+    "deploy": "SLS_DEBUG=* sls deploy --verbose",
+    "//": "",
+    "//": "=== DEV ===",
+    "deploy-dev": "yarn deploy -s dev",
+    "deploy-dev-relocation": "yarn deploy-dev function -f relocation_price --force",
+    "//": "",
+    "//": "=== DEV (V1) ===",
+    "deploy-dev-v1": "yarn deploy-dev --alias v1"
   },
   "dependencies": {
+    "serverless-aws-alias": "1.8.0",
+    "serverless-python-requirements": "6.0.0",
+    "serverless-api-gateway-caching": "1.10.1",
+    "serverless-deployment-bucket": "1.6.0",
+    "serverless-plugin-warmup": "8.2.1",
+    "serverless-aws-alias-v3": "3.2.0",
+    "serverless-offline": "9.3.1"
   }
 }

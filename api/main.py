@@ -1,7 +1,9 @@
+import os
 from dataclasses import asdict
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -10,7 +12,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from models import Size, Product
 
-app = FastAPI()
+STAGE = os.environ.get('STAGE')
+root_path = '/' if not STAGE else f'/{STAGE}'
+
+app = FastAPI(title="ZARA Products Monitor", root_path=root_path)
 
 options = webdriver.ChromeOptions()
 options.add_argument("--headless")
@@ -30,7 +35,7 @@ app.add_middleware(
 )
 
 
-@app.get("/item/")
+@app.get("/item")
 def read_item(url: str):
     with webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
                           options=options) as driver:
@@ -94,3 +99,6 @@ def read_item(url: str):
         print(f"=== Product: {[product_name, product_price, product_image, url, sizes]}")
         res = asdict(Product(product_name, product_price, product_image, url, sizes))
         return res
+
+
+handler = Mangum(app)

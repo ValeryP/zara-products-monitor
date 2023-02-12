@@ -1,0 +1,729 @@
+{
+  "service": {
+    "service": "zara-products-monitor",
+    "serviceObject": {
+      "name": "zara-products-monitor"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "python3.9",
+      "timeout": 30,
+      "memorySize": 128,
+      "profile": "p-val",
+      "region": "eu-central-1",
+      "apiName": "zara-products-monitor-dev",
+      "environment": {
+        "ENV": "dev"
+      },
+      "tracing": {
+        "apiGateway": true,
+        "lambda": true
+      },
+      "apiGateway": {
+        "apiKeySourceType": "HEADER",
+        "metrics": true
+      },
+      "logs": {
+        "restApi": {
+          "accessLogging": true,
+          "format": "requestTime: $context.requestTime, httpMethod: $context.httpMethod, resourcePath: $context.resourcePath, status: $context.status, message: $context.error.message, responseType: $context.error.responseType, extendedRequestId: $context.extendedRequestId, apiKey: $context.identity.apiKey, path: $context.path, xrayTraceId: $context.xrayTraceId, requestId: $context.requestId, ip: $context.identity.sourceIp, domain: $context.domainName",
+          "executionLogging": true,
+          "level": "INFO",
+          "fullExecutionData": true
+        }
+      },
+      "deploymentBucket": "zara-products-monitor-dev-dev-deploy",
+      "stage": "dev",
+      "versionFunctions": true,
+      "deploymentBucketObject": {
+        "name": "zara-products-monitor-dev-dev-deploy",
+        "serverSideEncryption": "AES256"
+      },
+      "alias": "dev",
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "AppLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/zara-products-monitor-dev-app"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "zara-products-monitor",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/zara-products-monitor-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/zara-products-monitor-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "xray:PutTraceSegments",
+                          "xray:PutTelemetryRecords"
+                        ],
+                        "Resource": [
+                          "*"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "zara-products-monitor",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "PythonRequirementsLambdaLayer": {
+            "Type": "AWS::Lambda::LayerVersion",
+            "Properties": {
+              "Content": {
+                "S3Bucket": "zara-products-monitor-dev-dev-deploy",
+                "S3Key": "serverless/zara-products-monitor/dev/1676235906480-2023-02-12T21:05:06.480Z/pythonRequirements.zip"
+              },
+              "LayerName": "FastAPI-Lambda-Function",
+              "Description": "FastAPI-Lambda-Function API Layer",
+              "CompatibleRuntimes": [
+                "python3.9"
+              ]
+            }
+          },
+          "AppLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "zara-products-monitor-dev-dev-deploy",
+                "S3Key": "serverless/zara-products-monitor/dev/1676235906480-2023-02-12T21:05:06.480Z/app.zip"
+              },
+              "Handler": "main.handler",
+              "Runtime": "python3.9",
+              "FunctionName": "zara-products-monitor-dev-app",
+              "MemorySize": 128,
+              "Timeout": 30,
+              "TracingConfig": {
+                "Mode": "Active"
+              },
+              "Environment": {
+                "Variables": {
+                  "ENV": "dev"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Layers": [
+                {
+                  "Ref": "PythonRequirementsLambdaLayer"
+                }
+              ]
+            },
+            "DependsOn": [
+              "AppLogGroup"
+            ]
+          },
+          "AppLambdaVersionQOWztfmRo8GwPNp1VvKTcQr80oDVCp3Ybuxa9TBjM": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "AppLambdaFunction"
+              },
+              "CodeSha256": "i3ccIAtYoOAYXP5IdcJGODxd5bkjb3ak8RhVIbMIbIM="
+            }
+          },
+          "ApiGatewayRestApi": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+              "Name": "zara-products-monitor-dev",
+              "EndpointConfiguration": {
+                "Types": [
+                  "EDGE"
+                ]
+              },
+              "Policy": "",
+              "ApiKeySourceType": "HEADER"
+            }
+          },
+          "ApiGatewayResourceItem": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "item",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceItemProxyVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceItem"
+              },
+              "PathPart": "{proxy+}",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodItemGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceItem"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "AppLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "AppLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodItemProxyVarAny": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "ANY",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceItemProxyVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "AppLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "AppLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayDeployment1676235891358": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "StageName": "dev"
+            },
+            "DependsOn": [
+              "ApiGatewayMethodItemGet",
+              "ApiGatewayMethodItemProxyVarAny"
+            ]
+          },
+          "AppLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AppLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "ApiGatewayLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/api-gateway/zara-products-monitor-dev"
+            }
+          },
+          "CustomApiGatewayAccountCloudWatchRole": {
+            "Type": "Custom::ApiGatewayAccountRole",
+            "Version": 1,
+            "Properties": {
+              "ServiceToken": {
+                "Fn::GetAtt": [
+                  "CustomDashresourceDashapigwDashcwDashroleLambdaFunction",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "IamRoleCustomResourcesLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "dev",
+                        "zara-products-monitor",
+                        "custom-resources-lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Resource": {
+                          "Fn::Join": [
+                            ":",
+                            [
+                              "arn",
+                              {
+                                "Ref": "AWS::Partition"
+                              },
+                              "iam:",
+                              {
+                                "Ref": "AWS::AccountId"
+                              },
+                              "role/*"
+                            ]
+                          ]
+                        },
+                        "Action": [
+                          "iam:AttachRolePolicy",
+                          "iam:CreateRole",
+                          "iam:ListAttachedRolePolicies",
+                          "iam:PassRole"
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Resource": {
+                          "Fn::Join": [
+                            ":",
+                            [
+                              "arn",
+                              {
+                                "Ref": "AWS::Partition"
+                              },
+                              "apigateway:*::/account"
+                            ]
+                          ]
+                        },
+                        "Action": [
+                          "apigateway:GET",
+                          "apigateway:PATCH"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "CustomDashresourceDashapigwDashcwDashroleLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "zara-products-monitor-dev-dev-deploy",
+                "S3Key": "serverless/zara-products-monitor/dev/1676235906480-2023-02-12T21:05:06.480Z/custom-resources.zip"
+              },
+              "FunctionName": "zara-products-monitor-dev-custom-resource-apigw-cw-role",
+              "Handler": "api-gateway-cloud-watch-role/handler.handler",
+              "MemorySize": 1024,
+              "Runtime": "nodejs16.x",
+              "Timeout": 180,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleCustomResourcesLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "IamRoleCustomResourcesLambdaExecution"
+            ]
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "zara-products-monitor-dev-dev-deploy",
+            "Export": {
+              "Name": "sls-zara-products-monitor-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "PythonRequirementsLambdaLayerQualifiedArn": {
+            "Description": "Current Lambda layer version",
+            "Value": {
+              "Ref": "PythonRequirementsLambdaLayer"
+            },
+            "Export": {
+              "Name": "sls-zara-products-monitor-dev-PythonRequirementsLambdaLayerQualifiedArn"
+            }
+          },
+          "PythonRequirementsLambdaLayerHash": {
+            "Description": "Current Lambda layer hash",
+            "Value": "596d369c20da5a33eaebb2652cc3f18c3a91700e",
+            "Export": {
+              "Name": "sls-zara-products-monitor-dev-PythonRequirementsLambdaLayerHash"
+            }
+          },
+          "PythonRequirementsLambdaLayerS3Key": {
+            "Description": "Current Lambda layer S3Key",
+            "Value": "serverless/zara-products-monitor/dev/1676235906480-2023-02-12T21:05:06.480Z/pythonRequirements.zip",
+            "Export": {
+              "Name": "sls-zara-products-monitor-dev-PythonRequirementsLambdaLayerS3Key"
+            }
+          },
+          "AppLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "AppLambdaVersionQOWztfmRo8GwPNp1VvKTcQr80oDVCp3Ybuxa9TBjM"
+            },
+            "Export": {
+              "Name": "sls-zara-products-monitor-dev-AppLambdaFunctionQualifiedArn"
+            }
+          },
+          "ServiceEndpoint": {
+            "Description": "URL of the service endpoint",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  },
+                  "/dev"
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-zara-products-monitor-dev-ServiceEndpoint"
+            }
+          },
+          "RestApiIdForApigCaching": {
+            "Description": "REST API ID",
+            "Value": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "Export": {
+              "Name": "sls-zara-products-monitor-dev-RestApiIdForApigCaching"
+            }
+          }
+        }
+      },
+      "vpc": {},
+      "aliasUserResources": {
+        "Resources": {},
+        "Outputs": {}
+      }
+    },
+    "custom": {
+      "apiGatewayCaching": {
+        "enabled": true,
+        "dataEncrypted": true
+      },
+      "deploymentBucket": {
+        "versioning": false,
+        "accelerate": false,
+        "blockPublicAccess": true,
+        "accessLog": false
+      },
+      "aliasStage": {
+        "cachingEnabled": true,
+        "cacheClusterEnabled": true,
+        "cacheClusterSize": 1,
+        "cacheDataEncrypted": false,
+        "cacheTtlInSeconds": 3600,
+        "dataTraceEnabled": true,
+        "loggingLevel": "INFO",
+        "metricsEnabled": true,
+        "throttlingRateLimit": 10,
+        "throttlingBurstLimit": 20
+      },
+      "serverless-offline": {
+        "httpPort": 8000,
+        "apiKey": "cC8ev0LsTe6QtxDPBFbqVa8GqdeZZdST5dqdRrk4"
+      },
+      "pythonRequirements": {
+        "layer": {
+          "name": "FastAPI-Lambda-Function",
+          "description": "FastAPI-Lambda-Function API Layer",
+          "compatibleRuntimes": {
+            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"PythonRequirementsLambdaLayer\"][\"Properties\"][\"CompatibleRuntimes\"]"
+          }
+        }
+      }
+    },
+    "plugins": [
+      "serverless-offline",
+      "serverless-python-requirements",
+      "serverless-api-gateway-caching",
+      "serverless-deployment-bucket",
+      "serverless-aws-alias-v3"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "app": {
+        "handler": "main.handler",
+        "layers": {
+          "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"AppLambdaFunction\"][\"Properties\"][\"Layers\"]"
+        },
+        "events": [
+          {
+            "http": {
+              "method": "get",
+              "path": "item",
+              "integration": "AWS_PROXY"
+            }
+          },
+          {
+            "http": {
+              "method": "any",
+              "path": "item/{proxy+}",
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "zara-products-monitor-dev-app",
+        "module": ".",
+        "package": {
+          "artifact": "/Users/p_val/Documents/workspace/personal/zara-products-checker/api/.serverless/app.zip"
+        },
+        "memory": 128,
+        "timeout": 30,
+        "runtime": "python3.9",
+        "vpc": {},
+        "versionLogicalId": "AppLambdaVersionQOWztfmRo8GwPNp1VvKTcQr80oDVCp3Ybuxa9TBjM"
+      }
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless.yml",
+    "initialServerlessConfig": {
+      "service": "zara-products-monitor",
+      "useDotenv": true,
+      "frameworkVersion": "3",
+      "params": {
+        "dev": {
+          "stageType": "dev",
+          "region": "eu-central-1",
+          "vpc-securityGroup": "sg-09123c6b4810f3ac7",
+          "vpc-subnets-one": "subnet-02b34ad137f1c3fda",
+          "vpc-subnets-two": "subnet-0d4c72c38708a43db",
+          "vpc-subnets-three": "subnet-0200bbfd17cfbefc6",
+          "cache": true
+        }
+      },
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "custom": {
+        "$ref": "$[\"service\"][\"custom\"]"
+      },
+      "package": {
+        "individually": true,
+        "patterns": [
+          "!.idea/**",
+          "!.serverless/**",
+          "!node_modules/**",
+          "!notebooks/**"
+        ],
+        "artifactsS3KeyDirname": "serverless/zara-products-monitor/dev/code-artifacts",
+        "deploymentBucket": "zara-products-monitor-dev-dev-deploy",
+        "artifactDirectoryName": "serverless/zara-products-monitor/dev/1676235906480-2023-02-12T21:05:06.480Z"
+      },
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      }
+    },
+    "layers": {
+      "pythonRequirements": {
+        "artifact": ".serverless/pythonRequirements.zip",
+        "name": "FastAPI-Lambda-Function",
+        "description": "FastAPI-Lambda-Function API Layer",
+        "compatibleRuntimes": {
+          "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"PythonRequirementsLambdaLayer\"][\"Properties\"][\"CompatibleRuntimes\"]"
+        },
+        "package": {}
+      }
+    },
+    "isDashboardMonitoringPreconfigured": false
+  },
+  "package": {
+    "individually": true,
+    "artifactDirectoryName": "serverless/zara-products-monitor/dev/1676235906480-2023-02-12T21:05:06.480Z",
+    "artifact": ""
+  }
+}

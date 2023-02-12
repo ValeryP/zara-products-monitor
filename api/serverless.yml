@@ -1,0 +1,149 @@
+service: zara-products-monitor
+useDotenv: true
+
+frameworkVersion: '3'
+
+params:
+#  prod:
+#    stageType: prod
+#    region: eu-south-1
+#    vpc-securityGroup: sg-0c80220abd608d0e7
+#    vpc-subnets-one: subnet-0835d8912454669fa
+#    vpc-subnets-two: subnet-08ff110f599a63a6d
+#    vpc-subnets-three: subnet-00b54c75a9d3f1e2f
+#    cache: true
+  dev:
+    stageType: dev
+    region: eu-central-1
+    vpc-securityGroup: sg-09123c6b4810f3ac7
+    vpc-subnets-one: subnet-02b34ad137f1c3fda
+    vpc-subnets-two: subnet-0d4c72c38708a43db
+    vpc-subnets-three: subnet-0200bbfd17cfbefc6
+    cache: true
+
+provider:
+  name: aws
+  runtime: python3.9
+  timeout: 30
+  memorySize: 128
+  profile: p-val
+  region: ${param:region}
+  apiName: ${self:service}-${sls:stage}
+  environment:
+    ENV: ${param:stageType}
+#    HOST: ${env:HOST}
+#    PORT: 5432
+#    DB_NAME: facile-real-estate
+#    USERNAME: api
+#    PASSWORD: ${env:PASSWORD}
+#  vpc:
+#    securityGroupIds:
+#      - ${param:vpc-securityGroup}
+#    subnetIds:
+#      - ${param:vpc-subnets-one}
+#      - ${param:vpc-subnets-two}
+#      - ${param:vpc-subnets-three}
+  tracing:
+    apiGateway: true
+    lambda: true
+#  tags:
+#    CostOwner: CompareTech
+#    Environment: ${param:stageType}
+#    Project: FacileRealEstate
+  apiGateway:
+    apiKeySourceType: HEADER
+    metrics: true
+  logs:
+    restApi:
+      accessLogging: true
+      format: 'requestTime: $context.requestTime, httpMethod: $context.httpMethod, resourcePath: $context.resourcePath, status: $context.status, message: $context.error.message, responseType: $context.error.responseType, extendedRequestId: $context.extendedRequestId, apiKey: $context.identity.apiKey, path: $context.path, xrayTraceId: $context.xrayTraceId, requestId: $context.requestId, ip: $context.identity.sourceIp, domain: $context.domainName'
+      executionLogging: true
+      level: INFO
+      fullExecutionData: true
+  deploymentBucket:
+    name: ${self:service}-${param:stageType}-${sls:stage}-deploy
+    serverSideEncryption: AES256
+
+custom:
+  apiGatewayCaching:
+    enabled: ${param:cache}
+    dataEncrypted: true
+  deploymentBucket:
+    versioning: false
+    accelerate: false
+    blockPublicAccess: true
+#    tags:
+#      - Key: CostOwner
+#        Value: CompareTech
+#      - Key: Environment
+#        Value: ${param:stageType}
+#      - Key: Project
+#        Value: FacileRealEstate
+#  warmup:
+#    functionsWarmer:
+#      enabled: true
+#      prewarm: true
+#      package:
+#        individually: true
+#      events:
+#        - schedule: rate(5 minutes)
+  aliasStage:
+    cachingEnabled: ${param:cache}
+    cacheClusterEnabled: ${param:cache}
+    cacheClusterSize: 1
+    cacheDataEncrypted: false
+    cacheTtlInSeconds: 3600
+    dataTraceEnabled: true
+    loggingLevel: INFO
+    metricsEnabled: true
+    throttlingRateLimit: 10
+    throttlingBurstLimit: 20
+  serverless-offline:
+    httpPort: 8000
+    apiKey: cC8ev0LsTe6QtxDPBFbqVa8GqdeZZdST5dqdRrk4
+  pythonRequirements:
+#    dockerizePip: true
+    layer:
+      name: FastAPI-Lambda-Function
+      description: FastAPI-Lambda-Function API Layer
+      compatibleRuntimes:
+        - python3.9
+
+package:
+  individually: true
+  patterns:
+    - '!.idea/**'
+    - '!.serverless/**'
+    - '!node_modules/**'
+    - '!notebooks/**'
+
+plugins:
+  - serverless-offline
+  - serverless-python-requirements
+  - serverless-api-gateway-caching
+  - serverless-deployment-bucket
+#  - serverless-plugin-warmup # should be listed before "serverless-aws-alias-v3" plugin
+  - serverless-aws-alias-v3
+
+functions:
+  app:
+    handler: main.handler
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    events:
+      - http:
+          method: get
+          path: /item
+      - http:
+          method: any
+          path: /item/{proxy+}
+#  login:
+#    handler: main.handler
+#    events:
+#      - http:
+#          path: login
+#          method: '*'
+#          cors: true
+#          private: true
+#          caching:
+#            enabled: false
