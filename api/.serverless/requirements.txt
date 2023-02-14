@@ -1,7 +1,0 @@
-fastapi==0.91.0
-mangum==0.17.0
-pydantic==1.10.4
-requests==2.28.2
-selenium==4.8.0
-urllib3==1.26.14
-uvicorn==0.20.0

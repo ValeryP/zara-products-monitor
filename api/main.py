@@ -1,5 +1,6 @@
 import os
 from dataclasses import asdict
+from dataclasses import dataclass
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,14 +11,27 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
-from models import Size, Product
 
-STAGE = os.environ.get('STAGE')
-root_path = '/' if not STAGE else f'/{STAGE}'
+@dataclass
+class Size:
+    name: str
+    is_available: bool
+    notes: str
 
-app = FastAPI(title="ZARA Products Monitor", root_path=root_path)
+
+@dataclass
+class Product:
+    name: str
+    price: int
+    image: str
+    url: str
+    sizes: [Size]
+
+
+app = FastAPI(title="ZARA Products Monitor")
 
 options = webdriver.ChromeOptions()
+options.binary_location = '/opt/chrome/chrome'
 options.add_argument("--headless")
 options.add_argument('user-agent={0}'.format(
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.517 Safari/537.36'))
@@ -25,6 +39,9 @@ options.add_argument("start-maximized")
 options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
+options.add_argument('--no-sandbox')
+options.add_argument('--single-process')
+options.add_argument('--disable-dev-shm-usage')
 
 app.add_middleware(
     CORSMiddleware,
@@ -37,8 +54,10 @@ app.add_middleware(
 
 @app.get("/item")
 def read_item(url: str):
-    with webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
-                          options=options) as driver:
+    with webdriver.Chrome('/opt/chromedriver', options=options) as driver:
+    # path_driver = None if 'IS_LOCAL' in os.environ else "/tmp"
+    # with webdriver.Chrome(service=ChromeService(ChromeDriverManager(path=path_driver).install()),
+    #                       options=options) as driver:
         driver.execute_script(
             "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         driver.execute_cdp_cmd('Network.setUserAgentOverride',
@@ -47,7 +66,7 @@ def read_item(url: str):
                                              'Chrome/85.0.4183.102 Safari/537.36'})
 
         driver.get(url)
-        # print(f"Page HTML: {driver.page_source}")
+        print(f"Page HTML: {driver.page_source}")
 
         # select product name
         el_product_name = driver.find_element(By.CLASS_NAME, 'product-detail-info__header-name')

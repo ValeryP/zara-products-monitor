@@ -1,11 +1,11 @@
 import {Product} from "../models/Product";
 import useSWR from "swr";
 
-const BASE_URL_LOCAL = 'http://127.0.0.1:8000'
+const BASE_URL_LOCAL = 'http://localhost:8000/dev'
 
-const BASE_URL_REMOTE = ''
+const BASE_URL_REMOTE = 'https://bph4yh026b.execute-api.eu-central-1.amazonaws.com/dev'
 
-const apiKey = '';
+const apiKey = 'euIY4ztZb99poiGkiCHkhhUfhCdJo0S4tUCfdqn8';
 
 const fetcher = (apiKey: string) => async (url: string, options?: RequestInit) => {
     const res = await fetch(url, {headers: {"x-api-key": apiKey}, ...options})
@@ -36,7 +36,7 @@ export function useProduct(productUrl?: string) {
     } = useSWR(finalUrl, fetcher(apiKey));
 
     if (!!error) {
-        console.error(error);
+        console.error(JSON.stringify(error));
     }
 
     return {productData: data as Product, productError: error, isProductLoading: isLoading}

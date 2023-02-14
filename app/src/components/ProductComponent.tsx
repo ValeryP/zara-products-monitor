@@ -62,6 +62,7 @@ export function ProductComponent({
                            width: '100%',
                            height: '100%',
                            maxHeight: 300,
+                           minHeight: 200,
                            objectFit: "cover"
                        }}/>
             {isCloseIconVisible &&

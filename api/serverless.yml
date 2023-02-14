@@ -11,7 +11,7 @@ params:
 #    vpc-subnets-one: subnet-0835d8912454669fa
 #    vpc-subnets-two: subnet-08ff110f599a63a6d
 #    vpc-subnets-three: subnet-00b54c75a9d3f1e2f
-#    cache: true
+#    cache: false
   dev:
     stageType: dev
     region: eu-central-1
@@ -19,16 +19,21 @@ params:
     vpc-subnets-one: subnet-02b34ad137f1c3fda
     vpc-subnets-two: subnet-0d4c72c38708a43db
     vpc-subnets-three: subnet-0200bbfd17cfbefc6
-    cache: true
+    cache: false
 
 provider:
   name: aws
-  runtime: python3.9
-  timeout: 30
-  memorySize: 128
+  runtime: python3.7
+  timeout: 60
+  memorySize: 2048
   profile: p-val
   region: ${param:region}
   apiName: ${self:service}-${sls:stage}
+  ecr:
+    images:
+      img:
+        path: ./
+        platform: linux/amd64
   environment:
     ENV: ${param:stageType}
 #    HOST: ${env:HOST}
@@ -90,7 +95,7 @@ custom:
   aliasStage:
     cachingEnabled: ${param:cache}
     cacheClusterEnabled: ${param:cache}
-    cacheClusterSize: 1
+    cacheClusterSize: "0.5"
     cacheDataEncrypted: false
     cacheTtlInSeconds: 3600
     dataTraceEnabled: true
@@ -100,14 +105,14 @@ custom:
     throttlingBurstLimit: 20
   serverless-offline:
     httpPort: 8000
-    apiKey: cC8ev0LsTe6QtxDPBFbqVa8GqdeZZdST5dqdRrk4
-  pythonRequirements:
+    apiKey: euIY4ztZb99poiGkiCHkhhUfhCdJo0S4tUCfdqn8
+#  pythonRequirements:
 #    dockerizePip: true
-    layer:
-      name: FastAPI-Lambda-Function
-      description: FastAPI-Lambda-Function API Layer
-      compatibleRuntimes:
-        - python3.9
+#    layer:
+#      name: FastAPI-Lambda-Function
+#      description: FastAPI-Lambda-Function API Layer
+#      compatibleRuntimes:
+#        - python3.7
 
 package:
   individually: true
@@ -116,6 +121,39 @@ package:
     - '!.serverless/**'
     - '!node_modules/**'
     - '!notebooks/**'
+    - '!serverless-chrome-1.0.0-52.zip'
+    - '!chromedriver_linux64.zip'
+
+#layers:
+#  selenium:
+#    path: selenium
+#    CompatibleRuntimes: [
+#      "python3.7"
+#    ]
+#  chromedriver:
+#    package:
+#      artifact: chromedriver_linux64.zip
+#  chrome:
+#    package:
+#      artifact: serverless-chrome-1.0.0-52.zip
+
+#resources:
+#  Outputs:
+#    SeleniumLayerExport:
+#      Value:
+#        Ref: SeleniumLambdaLayer
+#      Export:
+#        Name: SeleniumLambdaLayer
+#    ChromedriverLayerExport:
+#      Value:
+#        Ref: ChromedriverLambdaLayer
+#      Export:
+#        Name: ChromedriverLambdaLayer
+#    ChromeLayerExport:
+#      Value:
+#        Ref: ChromeLambdaLayer
+#      Export:
+#        Name: ChromeLambdaLayer
 
 plugins:
   - serverless-offline
@@ -127,23 +165,23 @@ plugins:
 
 functions:
   app:
-    handler: main.handler
-    layers:
-      - { Ref: PythonRequirementsLambdaLayer }
+#    handler: main.handler
+    image:
+      name: img
+#    layers:
+#      - { Ref: PythonRequirementsLambdaLayer }
     events:
       - http:
           method: get
           path: /item
+          cors: true
+          private: true
+          caching:
+            enabled: false
       - http:
           method: any
           path: /item/{proxy+}
-#  login:
-#    handler: main.handler
-#    events:
-#      - http:
-#          path: login
-#          method: '*'
-#          cors: true
-#          private: true
-#          caching:
-#            enabled: false
+          cors: true
+          private: true
+          caching:
+            enabled: false

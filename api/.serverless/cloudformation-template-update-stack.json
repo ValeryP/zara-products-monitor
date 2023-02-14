@@ -95,32 +95,16 @@
         }
       }
     },
-    "PythonRequirementsLambdaLayer": {
-      "Type": "AWS::Lambda::LayerVersion",
-      "Properties": {
-        "Content": {
-          "S3Bucket": "zara-products-monitor-dev-dev-deploy",
-          "S3Key": "serverless/zara-products-monitor/dev/1676235906480-2023-02-12T21:05:06.480Z/pythonRequirements.zip"
-        },
-        "LayerName": "FastAPI-Lambda-Function",
-        "Description": "FastAPI-Lambda-Function API Layer",
-        "CompatibleRuntimes": [
-          "python3.9"
-        ]
-      }
-    },
     "AppLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "S3Bucket": "zara-products-monitor-dev-dev-deploy",
-          "S3Key": "serverless/zara-products-monitor/dev/1676235906480-2023-02-12T21:05:06.480Z/app.zip"
+          "ImageUri": "589759944800.dkr.ecr.eu-central-1.amazonaws.com/serverless-zara-products-monitor-dev@sha256:8dafc3569eceec6fc446675c6d9672f1f2cac3cf1beb496edf665ed4fb3294f9"
         },
-        "Handler": "main.handler",
-        "Runtime": "python3.9",
+        "PackageType": "Image",
         "FunctionName": "zara-products-monitor-dev-app",
-        "MemorySize": 128,
-        "Timeout": 30,
+        "MemorySize": 2048,
+        "Timeout": 60,
         "TracingConfig": {
           "Mode": "Active"
         },
@@ -134,25 +118,20 @@
             "IamRoleLambdaExecution",
             "Arn"
           ]
-        },
-        "Layers": [
-          {
-            "Ref": "PythonRequirementsLambdaLayer"
-          }
-        ]
+        }
       },
       "DependsOn": [
         "AppLogGroup"
       ]
     },
-    "AppLambdaVersionQOWztfmRo8GwPNp1VvKTcQr80oDVCp3Ybuxa9TBjM": {
+    "AppLambdaVersionG0NIvnzTJFDCxoXFukHOmjLSr6wm8ytuwyPkKNobF18": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "AppLambdaFunction"
         },
-        "CodeSha256": "i3ccIAtYoOAYXP5IdcJGODxd5bkjb3ak8RhVIbMIbIM="
+        "CodeSha256": "8dafc3569eceec6fc446675c6d9672f1f2cac3cf1beb496edf665ed4fb3294f9"
       }
     },
     "ApiGatewayRestApi": {
@@ -195,6 +174,96 @@
         }
       }
     },
+    "ApiGatewayMethodItemOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceItem"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodItemProxyVarOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,GET,HEAD,PATCH,POST,PUT'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceItemProxyVar"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
     "ApiGatewayMethodItemGet": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
@@ -206,7 +275,7 @@
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         },
-        "ApiKeyRequired": false,
+        "ApiKeyRequired": true,
         "AuthorizationType": "NONE",
         "Integration": {
           "IntegrationHttpMethod": "POST",
@@ -252,7 +321,7 @@
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         },
-        "ApiKeyRequired": false,
+        "ApiKeyRequired": true,
         "AuthorizationType": "NONE",
         "Integration": {
           "IntegrationHttpMethod": "POST",
@@ -287,7 +356,7 @@
         "AppLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1676235891358": {
+    "ApiGatewayDeployment1676393937644": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -296,6 +365,8 @@
         "StageName": "dev"
       },
       "DependsOn": [
+        "ApiGatewayMethodItemOptions",
+        "ApiGatewayMethodItemProxyVarOptions",
         "ApiGatewayMethodItemGet",
         "ApiGatewayMethodItemProxyVarAny"
       ]
@@ -444,7 +515,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "zara-products-monitor-dev-dev-deploy",
-          "S3Key": "serverless/zara-products-monitor/dev/1676235906480-2023-02-12T21:05:06.480Z/custom-resources.zip"
+          "S3Key": "serverless/zara-products-monitor/dev/1676393940088-2023-02-14T16:59:00.088Z/custom-resources.zip"
         },
         "FunctionName": "zara-products-monitor-dev-custom-resource-apigw-cw-role",
         "Handler": "api-gateway-cloud-watch-role/handler.handler",
@@ -470,33 +541,10 @@
         "Name": "sls-zara-products-monitor-dev-ServerlessDeploymentBucketName"
       }
     },
-    "PythonRequirementsLambdaLayerQualifiedArn": {
-      "Description": "Current Lambda layer version",
-      "Value": {
-        "Ref": "PythonRequirementsLambdaLayer"
-      },
-      "Export": {
-        "Name": "sls-zara-products-monitor-dev-PythonRequirementsLambdaLayerQualifiedArn"
-      }
-    },
-    "PythonRequirementsLambdaLayerHash": {
-      "Description": "Current Lambda layer hash",
-      "Value": "596d369c20da5a33eaebb2652cc3f18c3a91700e",
-      "Export": {
-        "Name": "sls-zara-products-monitor-dev-PythonRequirementsLambdaLayerHash"
-      }
-    },
-    "PythonRequirementsLambdaLayerS3Key": {
-      "Description": "Current Lambda layer S3Key",
-      "Value": "serverless/zara-products-monitor/dev/1676235906480-2023-02-12T21:05:06.480Z/pythonRequirements.zip",
-      "Export": {
-        "Name": "sls-zara-products-monitor-dev-PythonRequirementsLambdaLayerS3Key"
-      }
-    },
     "AppLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "AppLambdaVersionQOWztfmRo8GwPNp1VvKTcQr80oDVCp3Ybuxa9TBjM"
+        "Ref": "AppLambdaVersionG0NIvnzTJFDCxoXFukHOmjLSr6wm8ytuwyPkKNobF18"
       },
       "Export": {
         "Name": "sls-zara-products-monitor-dev-AppLambdaFunctionQualifiedArn"

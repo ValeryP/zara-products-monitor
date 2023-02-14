@@ -2,13 +2,12 @@
   "name": "zara-products-monitor",
   "version": "1.0.0",
   "scripts": {
-    "api-run": "uvicorn main:app --reload",
-    "offline": "SLS_DEBUG=* sls offline --verbose",
+    "api-run-uvicorn": "uvicorn main:app --reload",
+    "api-run": "SLS_DEBUG=* sls offline --verbose",
     "deploy": "SLS_DEBUG=* sls deploy --verbose",
     "//": "",
     "//": "=== DEV ===",
     "deploy-dev": "yarn deploy -s dev",
-    "deploy-dev-relocation": "yarn deploy-dev function -f relocation_price --force",
     "//": "",
     "//": "=== DEV (V1) ===",
     "deploy-dev-v1": "yarn deploy-dev --alias v1"

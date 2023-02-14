@@ -1,0 +1,223 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Alias stack for zara-products-monitor-dev (dev)",
+  "Resources": {
+    "ServerlessAliasLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/serverless/zara-products-monitor-dev-dev",
+        "RetentionInDays": 7
+      }
+    },
+    "AppAlias": {
+      "Type": "AWS::Lambda::Alias",
+      "Properties": {
+        "FunctionName": {
+          "Fn::ImportValue": "zara-products-monitor-dev-App-LambdaFunctionArn"
+        },
+        "FunctionVersion": {
+          "Fn::GetAtt": [
+            "AppLambdaVersionG0NIvnzTJFDCxoXFukHOmjLSr6wm8ytuwyPkKNobF18",
+            "Version"
+          ]
+        },
+        "Name": "dev"
+      },
+      "DependsOn": [
+        "AppLambdaVersionG0NIvnzTJFDCxoXFukHOmjLSr6wm8ytuwyPkKNobF18"
+      ]
+    },
+    "AppLambdaVersionG0NIvnzTJFDCxoXFukHOmjLSr6wm8ytuwyPkKNobF18": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "FunctionName": {
+          "Fn::ImportValue": "zara-products-monitor-dev-App-LambdaFunctionArn"
+        },
+        "CodeSha256": "8dafc3569eceec6fc446675c6d9672f1f2cac3cf1beb496edf665ed4fb3294f9"
+      }
+    },
+    "ApiGatewayDeployment1676393937644": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Fn::ImportValue": "zara-products-monitor-dev-ApiGatewayRestApi"
+        }
+      },
+      "DependsOn": []
+    },
+    "ApiGatewayStage": {
+      "Type": "AWS::ApiGateway::Stage",
+      "Properties": {
+        "StageName": "dev",
+        "DeploymentId": {
+          "Ref": "ApiGatewayDeployment1676393937644"
+        },
+        "RestApiId": {
+          "Fn::ImportValue": "zara-products-monitor-dev-ApiGatewayRestApi"
+        },
+        "Variables": {
+          "SERVERLESS_ALIAS": "dev",
+          "SERVERLESS_STAGE": "dev"
+        },
+        "Description": "Alias stage 'dev' for zara-products-monitor",
+        "MethodSettings": [
+          {
+            "CacheTtlInSeconds": 3600,
+            "DataTraceEnabled": true,
+            "LoggingLevel": "INFO",
+            "MetricsEnabled": true,
+            "ThrottlingRateLimit": 10,
+            "ThrottlingBurstLimit": 20,
+            "ResourcePath": "/~1item",
+            "HttpMethod": "GET"
+          },
+          {
+            "CacheTtlInSeconds": 3600,
+            "DataTraceEnabled": true,
+            "LoggingLevel": "INFO",
+            "MetricsEnabled": true,
+            "ThrottlingRateLimit": 10,
+            "ThrottlingBurstLimit": 20,
+            "ResourcePath": "/~1item~1{proxy+}",
+            "HttpMethod": "DELETE"
+          },
+          {
+            "CacheTtlInSeconds": 3600,
+            "DataTraceEnabled": true,
+            "LoggingLevel": "INFO",
+            "MetricsEnabled": true,
+            "ThrottlingRateLimit": 10,
+            "ThrottlingBurstLimit": 20,
+            "ResourcePath": "/~1item~1{proxy+}",
+            "HttpMethod": "GET"
+          },
+          {
+            "CacheTtlInSeconds": 3600,
+            "DataTraceEnabled": true,
+            "LoggingLevel": "INFO",
+            "MetricsEnabled": true,
+            "ThrottlingRateLimit": 10,
+            "ThrottlingBurstLimit": 20,
+            "ResourcePath": "/~1item~1{proxy+}",
+            "HttpMethod": "HEAD"
+          },
+          {
+            "CacheTtlInSeconds": 3600,
+            "DataTraceEnabled": true,
+            "LoggingLevel": "INFO",
+            "MetricsEnabled": true,
+            "ThrottlingRateLimit": 10,
+            "ThrottlingBurstLimit": 20,
+            "ResourcePath": "/~1item~1{proxy+}",
+            "HttpMethod": "OPTIONS"
+          },
+          {
+            "CacheTtlInSeconds": 3600,
+            "DataTraceEnabled": true,
+            "LoggingLevel": "INFO",
+            "MetricsEnabled": true,
+            "ThrottlingRateLimit": 10,
+            "ThrottlingBurstLimit": 20,
+            "ResourcePath": "/~1item~1{proxy+}",
+            "HttpMethod": "PATCH"
+          },
+          {
+            "CacheTtlInSeconds": 3600,
+            "DataTraceEnabled": true,
+            "LoggingLevel": "INFO",
+            "MetricsEnabled": true,
+            "ThrottlingRateLimit": 10,
+            "ThrottlingBurstLimit": 20,
+            "ResourcePath": "/~1item~1{proxy+}",
+            "HttpMethod": "POST"
+          },
+          {
+            "CacheTtlInSeconds": 3600,
+            "DataTraceEnabled": true,
+            "LoggingLevel": "INFO",
+            "MetricsEnabled": true,
+            "ThrottlingRateLimit": 10,
+            "ThrottlingBurstLimit": 20,
+            "ResourcePath": "/~1item~1{proxy+}",
+            "HttpMethod": "PUT"
+          }
+        ]
+      },
+      "DependsOn": [
+        "ApiGatewayDeployment1676393937644"
+      ]
+    },
+    "AppLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "AppAlias"
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Fn::ImportValue": "zara-products-monitor-dev-ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      },
+      "DependsOn": [
+        "AppLambdaVersionG0NIvnzTJFDCxoXFukHOmjLSr6wm8ytuwyPkKNobF18",
+        "AppAlias"
+      ]
+    }
+  },
+  "Outputs": {
+    "ServerlessAliasName": {
+      "Description": "Alias the stack represents.",
+      "Value": "dev"
+    },
+    "ServerlessAliasLogGroup": {
+      "Description": "Log group for alias.",
+      "Value": {
+        "Ref": "ServerlessAliasLogGroup"
+      },
+      "Export": {
+        "Name": "zara-products-monitor-dev-dev-LogGroup"
+      }
+    },
+    "AliasFlags": {
+      "Description": "Alias flags.",
+      "Value": "{\"hasRole\":false}"
+    },
+    "AliasResources": {
+      "Description": "Custom resource references",
+      "Value": "[]"
+    },
+    "AliasOutputs": {
+      "Description": "Custom output references",
+      "Value": "[]"
+    },
+    "ServerlessAliasReference": {
+      "Description": "Alias stack reference.",
+      "Value": {
+        "Fn::ImportValue": "zara-products-monitor-dev-ServerlessAliasReference"
+      }
+    }
+  }
+}
